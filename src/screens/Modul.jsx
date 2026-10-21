@@ -294,6 +294,87 @@ export function Stroke() {
   );
 }
 
+/* ======================= Diabetes ======================= */
+export function Diabetes() {
+  const { state } = useStore();
+  const p = patientById('sri');
+  const d = p.diabetes;
+  const extra = fromDoctor(state, p.id, 'diabetes');
+  const a1c = [...d.hba1c, ...extra.filter((e) => e.hba1c != null).map((e) => ({ date: e.date, value: e.hba1c }))].map((x) => ({ ...x, label: fmt1(x.value) }));
+  const gd = [...d.glucose, ...extra.filter((e) => e.gd != null).map((e) => ({ date: e.date, value: e.gd }))].slice(-7);
+  const lastA1c = a1c[a1c.length - 1];
+  const lastGd = gd[gd.length - 1];
+  const inRange = gd.filter((g) => g.value >= 80 && g.value <= 130).length;
+  const bmi = d.body.weight / (d.body.height / 100) ** 2;
+
+  return (
+    <div className="screen">
+      <TopBar title="Diabetes" backTo="/" />
+      <div className="content">
+        <Hero tone="blue" icon="drop" eyebrow={`Sejak ${fmtShort(p.conditions[0].since)}`} title={d.type}>
+          <span className="body-sm" style={{ color: 'var(--ink)' }}>HbA1c turun dari {fmt1(a1c[0].value)}% menjadi {fmt1(lastA1c.value)}%. Gula darah dari glukometer di rumah ikut terpantau dokter.</span>
+        </Hero>
+        <CareTeam p={p} module="diabetes" />
+        <ReadOnly />
+
+        <div className="grid2">
+          <div className="tile"><span className="small">HbA1c terakhir</span><b style={{ fontSize: 20 }}>{fmt1(lastA1c.value)}%</b><span style={{ fontSize: 12, fontWeight: 700, color: lastA1c.value < 7 ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>{lastA1c.value < 7 ? 'Sesuai target' : 'Target < 7%'}</span></div>
+          <div className="tile"><span className="small">Gula darah puasa</span><b style={{ fontSize: 20 }}>{lastGd.value} <small style={{ fontSize: 12 }}>mg/dL</small></b><span style={{ fontSize: 12, fontWeight: 700, color: lastGd.value <= 130 ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>{lastGd.value <= 130 ? 'Sesuai target' : 'Target 80–130'}</span></div>
+        </div>
+
+        <div className="card">
+          <span className="between"><span className="h-card">HbA1c (rata-rata gula 3 bulan)</span><Chip tone="ok">Membaik</Chip></span>
+          <MiniChart series={a1c} min={6} max={10} unit="%" target={7} targetLabel="Target < 7%" label="Grafik HbA1c menurun" />
+          <span className="body-sm">HbA1c menggambarkan rata-rata gula darah selama 3 bulan. Semakin mendekati target, semakin kecil risiko komplikasi.</span>
+        </div>
+
+        <div className="card">
+          <span className="between"><span className="h-card">Gula darah puasa 7 hari</span><Chip tone={inRange >= 5 ? 'ok' : 'warn'}>{inRange}/7 hari sesuai target</Chip></span>
+          <MiniChart series={gd} min={60} max={200} unit="mg/dL" target={130} targetLabel="Batas atas 130" label="Grafik gula darah puasa 7 hari" />
+          <span className="row small" style={{ gap: 6 }}><Icon name="refresh" size={14} />{d.device}. Tidak perlu dicatat manual.</span>
+        </div>
+
+        <TodayMeds p={p} module="diabetes" note="Glimepiride dapat menurunkan gula darah terlalu rendah bila makan terlewat. Selalu bawa permen atau gula." />
+
+        <div className="card flush">
+          <div className="group-head"><b style={{ fontSize: 14 }}>Cek komplikasi</b><span className="small">Setiap tahun</span></div>
+          {d.checks.map((c) => (
+            <div key={c.label} className="list-row">
+              <span className="stack-sm grow"><b style={{ fontSize: 14 }}>{c.label}</b><span className="small">{c.result} · {fmtShort(c.date)}</span></span>
+              <Chip tone={c.planned ? 'new' : c.ok ? 'ok' : 'warn'}>{c.planned ? 'Dijadwalkan' : c.ok ? 'Baik' : 'Perhatian'}</Chip>
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <span className="h-card">Berat badan & tekanan darah</span>
+          <div className="between body"><span>Berat / tinggi badan</span><b>{d.body.weight} kg · {d.body.height} cm</b></div>
+          <div className="between body"><span>Indeks massa tubuh</span><b>{fmt1(bmi.toFixed(1))}</b></div>
+          <div className="between body"><span>Lingkar perut</span><b>{d.body.waist} cm</b></div>
+          <div className="between body"><span>Tekanan darah</span><b>{d.body.bp}</b></div>
+          <span className="body-sm">Turun berat badan 5% saja sudah membantu gula darah lebih terkendali.</span>
+        </div>
+
+        <div className="card">
+          <span className="small">Kontrol berikutnya</span>
+          <b style={{ fontSize: 16 }}>{fmtDayShort(d.nextControl.date)} · {relativeDays(daysBetween(DEMO_TODAY, d.nextControl.date))}</b>
+          <span className="body-sm">{d.nextControl.unit} · {d.nextControl.doctor}</span>
+        </div>
+
+        <div className="card">
+          <span className="h-card">Sehari-hari</span>
+          <ul className="bullets" style={{ fontSize: 14 }}>
+            <li>Isi piring: ½ sayur, ¼ lauk, ¼ nasi. Kurangi minuman manis.</li>
+            <li>Jalan kaki 30 menit, 5 kali seminggu.</li>
+            <li>Periksa telapak kaki setiap malam. Pakai alas kaki, juga di dalam rumah.</li>
+          </ul>
+        </div>
+        <Danger title="Segera ke faskes bila" text="Gemetar, keringat dingin, dan lemas (gula darah terlalu rendah); sangat haus, mual, muntah, atau mengantuk berat (gula darah sangat tinggi); luka di kaki yang bernanah atau menghitam." />
+      </div>
+    </div>
+  );
+}
+
 /* ======================= Modul yang baru diaktifkan dokter ======================= */
 
 

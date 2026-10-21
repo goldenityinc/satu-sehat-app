@@ -1,6 +1,6 @@
 # JIH Sehat · demo aplikasi pemantauan pasien per modul
 
-Prototipe web aplikasi pasien–dokter–kader RS JIH Solo. Beranda bergaya aplikasi layanan (seperti JKN Mobile) dengan ikon modul yang muncul sesuai penyakit yang diikuti pasien: **KIA**, **TBC**, **Jantung**, **Stroke**. Di laptop tampil dalam bingkai HP dengan panel demo, di HP tampil layar penuh.
+Prototipe web aplikasi pasien–dokter–kader RS JIH Solo. Beranda bergaya aplikasi layanan (seperti JKN Mobile) dengan ikon modul yang muncul sesuai penyakit yang diikuti pasien: **KIA**, **TBC**, **Jantung**, **Stroke**, **Diabetes**. Di laptop tampil dalam bingkai HP dengan panel demo, di HP tampil layar penuh.
 
 ## Menjalankan di localhost
 
@@ -27,7 +27,7 @@ Ganti peran dan akun lewat panel demo (desktop) atau menu **Akun** (HP).
 - **Sesi akses:** scan QR yang valid membuka sesi 24 jam untuk dokter tersebut. Pasien melihat sesi aktif di Kartu QR dan bisa **Akhiri** kapan saja; dokter langsung kehilangan akses.
 - **Rekam medis:** diagnosis berkode ICD-10 (Condition di SATUSEHAT), tim dokter per penyakit (bisa lebih dari satu dokter untuk penyakit yang sama), obat, dan alergi. Dokter bisa menambah diagnosis; diagnosis yang terkait modul otomatis mengaktifkan modulnya di beranda pasien.
 - **Dokter pribadi:** wajib untuk Jantung dan Stroke. Menerima notifikasi darurat (tombol Darurat pasien, nilai di luar batas dari faskes mana pun). Rekam medis tetap hanya dibuka lewat scan QR.
-- **Notifikasi darurat otomatis:** aturan di `src/lib/thresholds.js` (mis. TD ≥ 180/120, TD ≥ 140/90 saat hamil, nadi > 120/< 50, DJJ < 110/> 160, Hb < 8, NIHSS naik ≥ 2, BB turun > 5% saat TBC). Pelanggaran memicu notifikasi ke pasien, dokter pribadi, dan tim dokter modul.
+- **Notifikasi darurat otomatis:** aturan di `src/lib/thresholds.js` (mis. TD ≥ 180/120, TD ≥ 140/90 saat hamil, nadi > 120/< 50, DJJ < 110/> 160, Hb < 8, NIHSS naik ≥ 2, BB turun > 5% saat TBC, gula darah < 70 atau ≥ 300 mg/dL, HbA1c ≥ 9%). Pelanggaran memicu notifikasi ke pasien, dokter pribadi, dan tim dokter modul.
 - **Navigasi seragam:** semua peran memakai 5 slot yang sama (Beranda · Pasien/Riwayat · QR di tengah · Notifikasi/Darurat · Akun).
 
 ## Pasien contoh
@@ -35,6 +35,7 @@ Ganti peran dan akun lewat panel demo (desktop) atau menu **Akun** (HP).
 - **Rina Kartika**: modul KIA (hamil 24 minggu + anak Arka 17 bulan).
 - **Slamet Riyadi**: modul Jantung (pasca stent, hipertensi) + Stroke (pasca stroke iskemik, rehabilitasi).
 - **Dimas Prasetyo**: modul TBC (fase lanjutan, didampingi kader PMO, berobat di klinik mitra).
+- **Sri Wahyuni**: modul Diabetes (DM tipe 2, HbA1c 7,8% membaik, gula darah dari glukometer di rumah, cek komplikasi mata/ginjal/kaki).
 
 ## Alur demo yang disarankan
 

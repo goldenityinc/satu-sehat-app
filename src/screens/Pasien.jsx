@@ -502,14 +502,16 @@ const DANGER = {
   kia: { title: 'Kehamilan', text: 'Perdarahan, keluar cairan dari jalan lahir, nyeri perut hebat, demam tinggi, sakit kepala berat dengan pandangan kabur, gerak janin berkurang.' },
   jantung: { title: 'Jantung', text: 'Nyeri dada seperti ditekan lebih dari 20 menit, menjalar ke lengan kiri atau rahang, sesak napas berat, berdebar disertai pingsan.' },
   stroke: { title: 'Stroke: SeGeRa ke RS', text: 'Senyum tidak simetris, Gerak separuh tubuh melemah, bicaRa pelo, Kebas separuh tubuh, Rabun mendadak, Sakit kepala hebat.' },
-  tbc: { title: 'TBC', text: 'Batuk darah, sesak napas berat, kulit atau mata kuning, ruam kulit luas, muntah terus-menerus setelah minum obat.' }
+  tbc: { title: 'TBC', text: 'Batuk darah, sesak napas berat, kulit atau mata kuning, ruam kulit luas, muntah terus-menerus setelah minum obat.' },
+  diabetes: { title: 'Diabetes', text: 'Gemetar, keringat dingin, dan lemas (gula darah rendah); atau sangat haus, sering kencing, mual, muntah, dan mengantuk berat (gula darah sangat tinggi); luka di kaki yang bernanah atau menghitam.' }
 };
 
 const SYMPTOMS = {
   jantung: ['Nyeri dada', 'Sesak napas berat', 'Berdebar dan mau pingsan'],
   stroke: ['Wajah mencong', 'Lemah separuh tubuh', 'Bicara pelo', 'Sakit kepala hebat'],
   kia: ['Perdarahan', 'Keluar cairan', 'Gerak janin berkurang'],
-  tbc: ['Batuk darah', 'Sesak berat', 'Mata/kulit kuning']
+  tbc: ['Batuk darah', 'Sesak berat', 'Mata/kulit kuning'],
+  diabetes: ['Gemetar & keringat dingin', 'Sangat lemas/mengantuk', 'Luka kaki memburuk']
 };
 
 export function Darurat() {

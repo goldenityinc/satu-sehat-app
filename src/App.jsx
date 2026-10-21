@@ -6,7 +6,7 @@ import { KiaHub, Kehamilan, Kunjungan } from './screens/Ibu.jsx';
 import { Anak, KartuImunisasi, DetailVaksin, TumbuhKembang } from './screens/Anak.jsx';
 import { Edukasi, Artikel } from './screens/Edukasi.jsx';
 import { Home, Notifikasi, Kartu, Obat, Riwayat, RiwayatDetail, Faskes, Darurat, Jadwal, Akun } from './screens/Pasien.jsx';
-import { Tbc, Jantung, Stroke, ModulBaru } from './screens/Modul.jsx';
+import { Tbc, Jantung, Stroke, Diabetes, ModulBaru } from './screens/Modul.jsx';
 import { RekamMedis, DokterPribadi } from './screens/RekamMedis.jsx';
 import { DokterHome, DokterModul, DokterSesi, Scanner, DokterPasien, DokterInput, AlertsPage } from './screens/Dokter.jsx';
 import { PerawatHome, PerawatPasien } from './screens/Kader.jsx';
@@ -37,9 +37,9 @@ function PatientScreen({ a, b }) {
     case 'rekam-medis': return <RekamMedis />;
     case 'dokter-pribadi': return <DokterPribadi />;
     case 'modul': {
-      const own = { slamet: ['jantung', 'stroke'], dimas: ['tbc'] }[patient.id] || [];
+      const own = { slamet: ['jantung', 'stroke'], dimas: ['tbc'], sri: ['diabetes'] }[patient.id] || [];
       if (!own.includes(b)) return <ModulBaru key={b} module={b} />;
-      return b === 'tbc' ? <Tbc /> : b === 'jantung' ? <Jantung /> : <Stroke />;
+      return b === 'tbc' ? <Tbc /> : b === 'jantung' ? <Jantung /> : b === 'diabetes' ? <Diabetes /> : <Stroke />;
     }
     default: return <Home />;
   }

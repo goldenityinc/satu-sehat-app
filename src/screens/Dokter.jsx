@@ -12,7 +12,7 @@ const ageYears = (dob) => Math.floor(ageInMonthsDays(dob, DEMO_TODAY).months / 1
 const hasAccess = (state, pid) => accessInfo(state, pid).ok;
 
 // Modul utama tiap dokter (dari spesialisasi). Dokter umum melihat semua modul.
-export const SPECIALTY_MODULE = { hendra: 'jantung', yusuf: 'stroke', rani: 'stroke', laras: 'tbc', anindita: 'kia', ratna: 'kia' };
+export const SPECIALTY_MODULE = { hendra: 'jantung', yusuf: 'stroke', rani: 'stroke', laras: 'tbc', anindita: 'kia', ratna: 'kia', dewi: 'diabetes' };
 
 const patientsIn = (state, m) => patients.map((p) => mergedPatient(state, p.id)).filter((p) => p.modules.includes(m));
 const openAlertsFor = (state, actorId) => state.doctorAlerts.filter((a) => (actorId === 'perawat' || a.doctorIds.includes(actorId)) && !a.handled[actorId]);
@@ -77,7 +77,8 @@ export function DokterHome() {
   const queue = [
     { time: '09.00', p: 'slamet', reason: 'Kontrol jantung & stroke' },
     { time: '09.30', p: 'dimas', reason: 'Kontrol TBC bulan ke-3' },
-    { time: '10.00', p: 'rina', reason: 'Pemeriksaan kehamilan' }
+    { time: '10.00', p: 'rina', reason: 'Pemeriksaan kehamilan' },
+    { time: '10.30', p: 'sri', reason: 'Kontrol diabetes' }
   ];
 
   return (
@@ -390,6 +391,13 @@ const FORMS = {
     note: 'Respons pengobatan baik. Ada 2 dosis terlewat minggu lalu, sudah diberi edukasi.',
     plan: 'Lanjutkan 2FDC 3 tablet setiap pagi. Perawat PMO tetap mendampingi.',
     next: '2026-11-16'
+  },
+  diabetes: {
+    title: 'Kontrol diabetes',
+    fields: [['gd', 'Gula darah puasa (mg/dL)', '124'], ['hba1c', 'HbA1c (%, bila ada)', ''], ['td', 'Tekanan darah (mmHg)', '130/80'], ['bb', 'Berat badan (kg)', '67']],
+    note: 'Gula darah puasa membaik. Kesemutan kaki kiri tidak bertambah, tidak ada luka.',
+    plan: 'Lanjutkan metformin dan glimepiride. Jalan kaki 30 menit 5x seminggu. Periksa mata 15 Okt.',
+    next: '2026-12-17'
   }
 };
 
@@ -427,7 +435,7 @@ export function DokterInput({ id }) {
 
   const num = (k) => (values[k] ? Number(String(values[k]).replace(',', '.')) : undefined);
   const [sys, dia] = (values.td || '').split('/').map(Number);
-  const vals = { sys: sys || undefined, dia: dia || undefined, nadi: num('nadi'), djj: num('djj'), hb: num('hb'), nihss: num('nihss'), weight: num('bb'), efek: values.efek, ...previous(state, p, module) };
+  const vals = { sys: sys || undefined, dia: dia || undefined, nadi: num('nadi'), djj: num('djj'), hb: num('hb'), nihss: num('nihss'), weight: num('bb'), gd: num('gd'), hba1c: num('hba1c'), efek: values.efek, ...previous(state, p, module) };
   const flags = checkValues(vals, module);
 
   const submit = (e) => {
@@ -435,7 +443,7 @@ export function DokterInput({ id }) {
     addEncounter({
       patientId: p.id, module, title: form.title, summary: note, plan, nextControl: next,
       fields: form.fields.filter(([k]) => values[k]).map(([k, label]) => ({ label, value: values[k] })),
-      sys: vals.sys, dia: vals.dia, weight: vals.weight, nihss: vals.nihss, mrs: num('mrs'), ldl: num('ldl'),
+      sys: vals.sys, dia: vals.dia, weight: vals.weight, nihss: vals.nihss, mrs: num('mrs'), ldl: num('ldl'), gd: num('gd'), hba1c: num('hba1c'),
       values: vals, flags,
       diagnoses: visitDx.map((c) => c.code),
       newCondition: newCode ? CONDITION_CATALOG.find((c) => c.code === newCode) : undefined

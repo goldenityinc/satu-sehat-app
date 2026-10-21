@@ -15,6 +15,10 @@ export function agendaFor(p) {
     { id: 'pickup', date: p.tbc.nextPickup.date, title: 'Ambil obat TBC bulan ke-3', detail: facilityName(p.tbc.nextPickup.facility), tone: 'amber', route: '/modul/tbc' },
     { id: 'bta', date: '2026-12-21', title: 'Periksa dahak (BTA) bulan ke-5', detail: 'Laboratorium klinik mitra', tone: 'amber', route: '/modul/tbc' }
   ];
+  if (p.id === 'sri') return [
+    { id: 'mata', date: '2026-10-15', title: 'Pemeriksaan mata (retina)', detail: 'Poli Mata RS JIH Solo · skrining diabetes', tone: 'blue', route: '/modul/diabetes' },
+    { id: 'pd', date: p.diabetes.nextControl.date, title: 'Kontrol Poli Penyakit Dalam', detail: p.diabetes.nextControl.doctor, tone: 'blue', route: '/modul/diabetes' }
+  ];
   return [];
 }
 
@@ -34,6 +38,9 @@ export function alertsFor(state, p) {
   if (p.id === 'dimas') {
     const pct = adherence(state, p, LAST7);
     out.push({ tone: 'warn', title: `Kepatuhan minum obat 7 hari: ${pct}%`, text: 'Ada dosis terlewat tanggal 3 dan 6 Oktober. Obat TBC harus diminum setiap hari tanpa putus.', route: '/obat' });
+  }
+  if (p.id === 'sri') {
+    out.push({ tone: 'warn', title: 'HbA1c 7,8%: membaik, belum di target', text: 'Target HbA1c di bawah 7%. Minum obat teratur dan jaga pola makan.', route: '/modul/diabetes' });
   }
   return out;
 }
@@ -71,6 +78,10 @@ export function moduleStatus(state, p, m) {
   } else if (m === 'tbc' && p.tbc) {
     line = `Hari ke-${daysBetween(p.tbc.start, DEMO_TODAY) + 1} dari ${p.tbc.totalDays} · fase lanjutan`;
     if (adherence(state, p, LAST7) < 90) flag = 'Obat terlewat';
+  } else if (m === 'diabetes' && p.diabetes) {
+    const a1c = enc.find((e) => e.module === 'diabetes' && e.hba1c != null)?.hba1c ?? p.diabetes.hba1c.at(-1).value;
+    const gd = enc.find((e) => e.module === 'diabetes' && e.gd != null)?.gd ?? p.diabetes.glucose.at(-1).value;
+    line = `HbA1c ${String(a1c).replace('.', ',')}% · gula darah ${gd} mg/dL`;
   } else {
     const c = p.conditions.find((x) => x.module === m);
     if (c) line = `${c.name} · sejak ${fmtShort(c.since)}`;

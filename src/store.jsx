@@ -8,7 +8,7 @@ export const actorById = (id) => (id === 'perawat' ? { ...kader, id: 'perawat' }
 const actorOf = (s) => actorById(s.role === 'kader' ? 'perawat' : s.doctorId);
 
 // Satu browser = satu "server" demo: semua peran (pasien, dokter, kader) berbagi state ini.
-const KEY = 'jih-sehat-demo-v3';
+const KEY = 'jih-sehat-demo-v4';
 export const QR_TTL_MS = 10 * 60_000; // QR berganti setiap 10 menit
 
 const defaults = () => ({

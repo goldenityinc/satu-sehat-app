@@ -16,6 +16,7 @@ export const doctors = [
   { id: 'anindita', name: 'dr. Anindita Prameswari, Sp.OG', short: 'dr. Anindita', specialty: 'Kebidanan & kandungan', unit: 'Poli Kebidanan', initials: 'AP' },
   { id: 'rani', name: 'dr. Maharani Putri, Sp.KFR', short: 'dr. Rani', specialty: 'Rehabilitasi medik', unit: 'Instalasi Rehab Medik', initials: 'MP' },
   { id: 'ayu', name: 'dr. Ayu Lestari', short: 'dr. Ayu', specialty: 'Dokter umum', unit: 'Poli Umum', initials: 'AL', facility: 'mitra' },
+  { id: 'dewi', name: 'dr. Dewi Kartikasari, Sp.PD-KEMD', short: 'dr. Dewi', specialty: 'Penyakit dalam (endokrin)', unit: 'Poli Penyakit Dalam', initials: 'DK' },
   { id: 'ratna', name: 'Bd. Ratna Wulandari', short: 'Bd. Ratna', specialty: 'Bidan', unit: 'Poli Kebidanan', initials: 'RW' }
 ];
 export const doctorById = (id) => doctors.find((d) => d.id === id);
@@ -31,7 +32,7 @@ export const CONDITION_CATALOG = [
   { code: 'I63.9', name: 'Stroke iskemik (infark serebral)', module: 'stroke' },
   { code: 'A15.0', name: 'TBC paru terkonfirmasi bakteriologis', module: 'tbc' },
   { code: 'O99.0', name: 'Anemia dalam kehamilan', module: 'kia' },
-  { code: 'E11.9', name: 'Diabetes melitus tipe 2', module: null }
+  { code: 'E11.9', name: 'Diabetes melitus tipe 2', module: 'diabetes' }
 ];
 
 // Perawat pendamping (home care & pengawas minum obat). Variabel tetap bernama `kader` agar kode lama tidak berubah.
@@ -42,7 +43,8 @@ export const MODULES = {
   kia: { id: 'kia', name: 'KIA', long: 'Kesehatan Ibu & Anak', icon: 'baby', tone: 'coral', route: '/kia' },
   tbc: { id: 'tbc', name: 'TBC', long: 'Pengobatan TBC', icon: 'lungs', tone: 'amber', route: '/modul/tbc' },
   jantung: { id: 'jantung', name: 'Jantung', long: 'Penyakit jantung', icon: 'heartPulse', tone: 'red', route: '/modul/jantung' },
-  stroke: { id: 'stroke', name: 'Stroke', long: 'Pemulihan stroke', icon: 'brain', tone: 'purple', route: '/modul/stroke' }
+  stroke: { id: 'stroke', name: 'Stroke', long: 'Pemulihan stroke', icon: 'brain', tone: 'purple', route: '/modul/stroke' },
+  diabetes: { id: 'diabetes', name: 'Diabetes', long: 'Diabetes', icon: 'drop', tone: 'blue', route: '/modul/diabetes' }
 };
 
 export const patients = [
@@ -146,6 +148,40 @@ export const patients = [
       nextPickup: { date: '2026-10-19', facility: 'mitra' },
       missed: ['2026-10-03', '2026-10-06']
     }
+  },
+  {
+    id: 'sri', name: 'Sri Wahyuni', short: 'Bu Sri', greet: 'Bu Sri', initials: 'SW', sex: 'P', dob: '1968-08-14',
+    nik: '3372••••••••0034', healthId: 'JIH-0047-5521', satusehatId: 'P02478193332', bloodType: 'AB+', allergies: ['Tidak ada'],
+    modules: ['diabetes'], homeFacility: 'jih',
+    conditions: [{ code: 'E11.9', name: 'Diabetes melitus tipe 2', module: 'diabetes', since: '2021-03-10', by: 'dr. Ayu Lestari', facility: 'mitra' }],
+    careTeam: { diabetes: ['dewi', 'ayu'] },
+    meds: [
+      { id: 'metformin', name: 'Metformin 500 mg', dose: '1 tablet', time: 'pagi & malam', note: 'Sesudah makan', module: 'diabetes' },
+      { id: 'glimepiride', name: 'Glimepiride 2 mg', dose: '1 tablet', time: 'pagi', note: 'Sebelum sarapan, jangan lewatkan makan', module: 'diabetes' }
+    ],
+    encounters: [
+      { id: 'sr-3', date: '2026-09-24', facility: 'jih', unit: 'Poli Penyakit Dalam', doctor: 'dr. Dewi Kartikasari, Sp.PD-KEMD', module: 'diabetes', title: 'Kontrol diabetes', summary: 'HbA1c 7,8%, turun dari 8,2%. Glimepiride ditambahkan. Kesemutan ringan di kaki kiri, pemeriksaan mata dijadwalkan.' },
+      { id: 'sr-2', date: '2026-06-18', facility: 'mitra', unit: 'Poli Umum', doctor: 'dr. Ayu Lestari', module: 'diabetes', title: 'Kontrol gula darah (klinik mitra)', summary: 'Gula darah puasa 156 mg/dL. Dirujuk ke Sp.PD RS JIH Solo untuk evaluasi.' },
+      { id: 'sr-1', date: '2026-03-12', facility: 'jih', unit: 'Laboratorium', doctor: 'Laboratorium RS JIH Solo', module: 'diabetes', title: 'Pemeriksaan lab diabetes', summary: 'HbA1c 8,6%. Fungsi ginjal normal.' }
+    ],
+    diabetes: {
+      type: 'Diabetes melitus tipe 2',
+      hba1c: [{ date: '2025-12-10', value: 9.1 }, { date: '2026-03-12', value: 8.6 }, { date: '2026-06-18', value: 8.2 }, { date: '2026-09-24', value: 7.8 }],
+      // Gula darah puasa dari glukometer di rumah (terkirim otomatis ke aplikasi).
+      glucose: [
+        { date: '2026-10-02', value: 142 }, { date: '2026-10-03', value: 138 }, { date: '2026-10-04', value: 151 }, { date: '2026-10-05', value: 129 },
+        { date: '2026-10-06', value: 134 }, { date: '2026-10-07', value: 126 }, { date: '2026-10-08', value: 118 }
+      ],
+      device: 'Glukometer di rumah, terhubung ke aplikasi',
+      body: { weight: 68, height: 155, waist: 92, bp: '134/84' },
+      checks: [
+        { label: 'Fungsi ginjal (eGFR & albumin urin)', date: '2026-09-24', result: 'Normal · eGFR 92', ok: true },
+        { label: 'Pemeriksaan kaki (saraf & luka)', date: '2026-09-24', result: 'Kesemutan ringan di kaki kiri, tidak ada luka', ok: false },
+        { label: 'LDL kolesterol', date: '2026-09-24', result: '108 mg/dL · target < 100', ok: false },
+        { label: 'Pemeriksaan mata (retina)', date: '2026-10-15', result: 'Dijadwalkan di Poli Mata', planned: true }
+      ],
+      nextControl: { date: '2026-10-22', unit: 'Poli Penyakit Dalam', doctor: 'dr. Dewi Kartikasari, Sp.PD-KEMD' }
+    }
   }
 ];
 
@@ -162,6 +198,7 @@ export function seedMedLogs() {
         if (p.id === 'dimas' && p.tbc.missed.includes(d)) taken = false;
         if (p.id === 'slamet' && m.id === 'atorva' && d === '2026-10-05') taken = false;
         if (p.id === 'rina' && m.id === 'ttd' && d >= '2026-10-05') taken = false;
+        if (p.id === 'sri' && m.id === 'metformin' && d === '2026-10-04') taken = false;
         logs[`${p.id}:${m.id}:${d}`] = taken ? { by: p.id === 'dimas' && d !== '2026-10-04' ? 'kader' : 'pasien' } : null;
       }
     }
