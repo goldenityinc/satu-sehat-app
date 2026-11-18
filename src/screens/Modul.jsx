@@ -375,9 +375,136 @@ export function Diabetes() {
   );
 }
 
-/* ======================= Modul yang baru diaktifkan dokter ======================= */
+/* ======================= Hipertensi ======================= */
+export function Hipertensi() {
+  const { state } = useStore();
+  const p = patientById('budi');
+  const h = p.hipertensi;
+  const extra = fromDoctor(state, p.id, 'hipertensi').filter((e) => e.sys);
+  const home = h.home.map((b) => ({ date: b.date, value: b.sys, dia: b.dia, label: `${b.sys}/${b.dia}` }));
+  const clinic = [...h.clinic, ...extra.map((e) => ({ date: e.date, sys: e.sys, dia: e.dia }))].map((b) => ({ date: b.date, value: b.sys, dia: b.dia, label: `${b.sys}/${b.dia}` }));
+  const last = home[home.length - 1];
+  const avgSys = Math.round(home.reduce((a, b) => a + b.value, 0) / home.length);
+  const avgDia = Math.round(home.reduce((a, b) => a + b.dia, 0) / home.length);
+  const inTarget = home.filter((b) => b.value < 130 && b.dia < 80).length;
 
+  return (
+    <div className="screen">
+      <TopBar title="Hipertensi" backTo="/" />
+      <div className="content">
+        <Hero tone="coral" icon="gauge" eyebrow={`Sejak ${fmtShort(p.conditions[0].since)}`} title="Hipertensi, dipantau dari rumah">
+          <span className="body-sm" style={{ color: 'var(--ink)' }}>Tekanan darah dari tensimeter di rumah dan dari setiap kontrol tampil di sini. Target ditetapkan dokter: di bawah 130/80.</span>
+        </Hero>
+        <CareTeam p={p} module="hipertensi" />
+        <ReadOnly />
 
+        <div className="grid2">
+          <div className="tile"><span className="small">Pagi ini (di rumah)</span><b style={{ fontSize: 20 }}>{last.label}</b><span style={{ fontSize: 12, fontWeight: 700, color: last.value < 130 ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>{last.value < 130 ? 'Sesuai target' : 'Di atas target'}</span></div>
+          <div className="tile"><span className="small">Rata-rata 7 hari</span><b style={{ fontSize: 20 }}>{avgSys}/{avgDia}</b><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--warn-ink)' }}>Target &lt; 130/80</span></div>
+        </div>
+
+        <div className="card">
+          <span className="between"><span className="h-card">Tekanan darah di rumah 7 hari</span><Chip tone={inTarget >= 5 ? 'ok' : 'warn'}>{inTarget}/7 hari sesuai target</Chip></span>
+          <MiniChart series={home} second="dia" min={60} max={180} unit="mmHg" target={130} targetLabel="Target sistolik < 130" label="Grafik tekanan darah di rumah 7 hari" />
+          <span className="row small" style={{ gap: 6 }}><Icon name="refresh" size={14} />{h.device}. Tidak perlu dicatat manual.</span>
+        </div>
+
+        <div className="card">
+          <span className="h-card">Tekanan darah saat kontrol</span>
+          <MiniChart series={clinic} second="dia" min={60} max={180} unit="mmHg" target={130} targetLabel="Target sistolik < 130" label="Grafik tekanan darah saat kontrol" />
+          <span className="body-sm">Dari RS JIH Solo dan klinik mitra. Turun dari {clinic[0].label} sejak obat disesuaikan.</span>
+        </div>
+
+        <TodayMeds p={p} module="hipertensi" note="Minum obat tekanan darah setiap hari walau tidak ada keluhan." />
+
+        <div className="card flush">
+          <div className="group-head"><b style={{ fontSize: 14 }}>Gaya hidup</b><span className="small">Dari dokter</span></div>
+          {h.lifestyle.map((r) => (
+            <div key={r.label} className="list-row">
+              <span className="stack-sm grow"><b style={{ fontSize: 14 }}>{r.label}</b><span className="small">{r.value}</span></span>
+              <Chip tone={r.ok ? 'ok' : 'warn'}>{r.ok ? 'Baik' : 'Perlu ditingkatkan'}</Chip>
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <span className="small">Kontrol berikutnya</span>
+          <b style={{ fontSize: 16 }}>{fmtDayShort(h.nextControl.date)} · {relativeDays(daysBetween(DEMO_TODAY, h.nextControl.date))}</b>
+          <span className="body-sm">{h.nextControl.unit} · {h.nextControl.doctor}</span>
+        </div>
+        <Danger title="Segera ke IGD bila" text="Tekanan darah 180/120 atau lebih, disertai sakit kepala hebat, nyeri dada, sesak napas, pandangan kabur, atau lemah separuh badan." />
+      </div>
+    </div>
+  );
+}
+
+/* ======================= Ginjal kronis ======================= */
+export function Ginjal() {
+  const { state } = useStore();
+  const p = patientById('budi');
+  const g = p.ginjal;
+  const extra = fromDoctor(state, p.id, 'ginjal');
+  const egfr = [...g.egfr, ...extra.filter((e) => e.egfr != null).map((e) => ({ date: e.date, value: e.egfr }))];
+  const k = [...g.potassium, ...extra.filter((e) => e.k != null).map((e) => ({ date: e.date, value: e.k }))].map((x) => ({ ...x, label: fmt1(x.value) }));
+  const lastE = egfr[egfr.length - 1];
+  const lastK = k[k.length - 1];
+
+  return (
+    <div className="screen">
+      <TopBar title="Ginjal Kronis" backTo="/" />
+      <div className="content">
+        <Hero tone="teal" icon="kidney" eyebrow={g.stage} title={p.conditions[1].name}>
+          <span className="body-sm" style={{ color: 'var(--ink)' }}>Fungsi ginjal dipantau dari setiap hasil lab, di RS maupun faskes lain. Tujuannya menjaga ginjal agar tidak terus menurun.</span>
+        </Hero>
+        <CareTeam p={p} module="ginjal" />
+        <ReadOnly />
+
+        <div className="grid2">
+          <div className="tile"><span className="small">eGFR terakhir</span><b style={{ fontSize: 20 }}>{lastE.value} <small style={{ fontSize: 12 }}>mL/menit</small></b><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--warn-ink)' }}>Stadium 3b</span></div>
+          <div className="tile"><span className="small">Kalium</span><b style={{ fontSize: 20 }}>{lastK.label} <small style={{ fontSize: 12 }}>mmol/L</small></b><span style={{ fontSize: 12, fontWeight: 700, color: lastK.value < 5.5 ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>{lastK.value < 5.5 ? 'Masih aman' : 'Perlu perhatian'}</span></div>
+        </div>
+
+        <div className="card">
+          <span className="between"><span className="h-card">Fungsi ginjal (eGFR)</span><Chip tone="warn">Turun perlahan</Chip></span>
+          <MiniChart series={egfr} min={0} max={70} unit="mL/menit" target={30} targetLabel="Batas stadium 4: 30" label="Grafik eGFR" />
+          <span className="body-sm">eGFR menunjukkan seberapa baik ginjal menyaring darah. Semakin tinggi semakin baik. Tekanan darah yang terkendali membantu memperlambat penurunannya.</span>
+        </div>
+
+        <div className="card">
+          <span className="h-card">Kalium darah</span>
+          <MiniChart series={k} min={3} max={7} unit="mmol/L" target={5.5} targetLabel="Batas atas 5,5" label="Grafik kalium darah" />
+          <span className="body-sm">Kalium yang terlalu tinggi dapat mengganggu irama jantung. Bila mencapai 6,0 atau lebih, dokter langsung diberi tahu.</span>
+        </div>
+
+        <TodayMeds p={p} module="ginjal" note="Candesartan melindungi ginjal. Jangan minum obat antinyeri tanpa resep dokter." />
+
+        <div className="card flush">
+          <div className="group-head"><b style={{ fontSize: 14 }}>Hasil lab lain</b><span className="small">{fmtShort(g.labs[0].date)}</span></div>
+          {g.labs.map((l) => (
+            <div key={l.label} className="list-row">
+              <span className="stack-sm grow"><b style={{ fontSize: 14 }}>{l.label}</b><span className="small">{l.value}</span></span>
+              <Chip tone={l.ok ? 'ok' : 'warn'}>{l.ok ? 'Baik' : 'Perhatian'}</Chip>
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <span className="h-card">Pola makan & minum</span>
+          {g.diet.map((d) => <div key={d.label} className="between body"><span>{d.label}</span><b style={{ textAlign: 'right' }}>{d.value}</b></div>)}
+        </div>
+
+        <div className="card">
+          <span className="small">Cek lab & kontrol berikutnya</span>
+          <b style={{ fontSize: 16 }}>Lab {fmtDayShort(g.nextLab.date)} · kontrol {fmtDayShort(g.nextControl.date)}</b>
+          <span className="body-sm">{g.nextControl.unit} · {g.nextControl.doctor}</span>
+        </div>
+        <Danger title="Segera ke faskes bila" text="Kencing sangat sedikit atau tidak kencing, bengkak di kaki dan wajah bertambah, sesak napas, lemas berat, atau berdebar tidak teratur." />
+      </div>
+    </div>
+  );
+}
+
+/* ======================= Modul tanpa layar khusus ======================= */
 export function ModulBaru({ module }) {
   const { state, patient: p } = useStore();
   const m = MODULES[module];
@@ -387,8 +514,8 @@ export function ModulBaru({ module }) {
     <div className="screen">
       <TopBar title={m.long} backTo="/" />
       <div className="content">
-        <Hero tone={m.tone} icon={m.icon} eyebrow="Modul baru diaktifkan dokter" title={dx.map((c) => c.name).join(', ')}>
-          <span className="body-sm" style={{ color: 'var(--ink)' }}>Didiagnosis {dx[0] ? `${fmtShort(dx[0].since)} oleh ${dx[0].by}` : ''}. Data pemantauan akan bertambah setiap kali Anda kontrol.</span>
+        <Hero tone={m.tone} icon={m.icon} eyebrow="Modul pemantauan" title={dx.length ? dx.map((c) => c.name).join(', ') : m.long}>
+          <span className="body-sm" style={{ color: 'var(--ink)' }}>{dx[0] ? `Didiagnosis ${fmtShort(dx[0].since)} oleh ${dx[0].by}. ` : ''}Data pemantauan akan bertambah setiap kali Anda kontrol.</span>
         </Hero>
         <ReadOnly />
         <div className="card">

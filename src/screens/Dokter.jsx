@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate } from '../router.jsx';
-import { useStore, adherence, accessInfo, mergedPatient, detectShownQr, actorById } from '../store.jsx';
+import { useStore, adherence, accessInfo, mergedPatient, detectShownQr, actorById, activeModules } from '../store.jsx';
 import { Icon, TopBar, Chip, Avatar, MenuIcon, TONES } from '../components/ui.jsx';
 import { DEMO_TODAY, ancVisits } from '../data/simrs.js';
 import { patients, patientById, doctorById, MODULES, facilities, facilityName, LAST7, CONDITION_CATALOG, CRITICAL_MODULES } from '../data/patients.js';
@@ -12,7 +12,7 @@ const ageYears = (dob) => Math.floor(ageInMonthsDays(dob, DEMO_TODAY).months / 1
 const hasAccess = (state, pid) => accessInfo(state, pid).ok;
 
 // Modul utama tiap dokter (dari spesialisasi). Dokter umum melihat semua modul.
-export const SPECIALTY_MODULE = { hendra: 'jantung', yusuf: 'stroke', rani: 'stroke', laras: 'tbc', anindita: 'kia', ratna: 'kia', dewi: 'diabetes' };
+export const SPECIALTY_MODULE = { hendra: 'jantung', yusuf: 'stroke', rani: 'stroke', laras: 'tbc', anindita: 'kia', ratna: 'kia', dewi: 'diabetes', bayu: 'ginjal' };
 
 const patientsIn = (state, m) => patients.map((p) => mergedPatient(state, p.id)).filter((p) => p.modules.includes(m));
 const openAlertsFor = (state, actorId) => state.doctorAlerts.filter((a) => (actorId === 'perawat' || a.doctorIds.includes(actorId)) && !a.handled[actorId]);
@@ -72,20 +72,22 @@ export function DokterHome() {
   const { state, doctor, update } = useStore();
   const mine = state.encounters.filter((e) => e.doctorId === state.doctorId);
   const alerts = openAlertsFor(state, state.doctorId);
-  const spec = SPECIALTY_MODULE[state.doctorId];
-  const order = spec ? [spec, ...Object.keys(MODULES).filter((m) => m !== spec)] : Object.keys(MODULES);
+  const active = activeModules(state);
+  const spec = active.includes(SPECIALTY_MODULE[state.doctorId]) ? SPECIALTY_MODULE[state.doctorId] : null;
+  const order = spec ? [spec, ...active.filter((m) => m !== spec)] : active;
   const queue = [
     { time: '09.00', p: 'slamet', reason: 'Kontrol jantung & stroke' },
     { time: '09.30', p: 'dimas', reason: 'Kontrol TBC bulan ke-3' },
     { time: '10.00', p: 'rina', reason: 'Pemeriksaan kehamilan' },
-    { time: '10.30', p: 'sri', reason: 'Kontrol diabetes' }
+    { time: '10.30', p: 'sri', reason: 'Kontrol diabetes' },
+    { time: '11.00', p: 'budi', reason: 'Kontrol hipertensi & ginjal' }
   ];
 
   return (
     <div className="screen">
       <div className="role-head doctor">
         <div className="between">
-          <span className="brand"><span className="brand-mark" style={{ color: '#1E4F8A' }}><Icon name="stethoscope" size={18} stroke={2.2} /></span>JIH Sehat · Dokter</span>
+          <span className="brand"><span className="brand-mark" style={{ color: '#1E4F8A' }}><Icon name="stethoscope" size={18} stroke={2.2} /></span>Ruang Dokter</span>
           <Link to="/dokter/notifikasi" className="icon-btn" aria-label={`Notifikasi darurat, ${alerts.length}`}>
             <Icon name="bell" />{alerts.length ? <span className="icon-badge">{alerts.length}</span> : null}
           </Link>
@@ -113,7 +115,7 @@ export function DokterHome() {
         ) : null}
 
         <div className="stack" style={{ gap: 12 }}>
-          <span className="between"><span className="h-section">Modul penyakit</span><span className="small">{spec ? `Spesialisasi: ${MODULES[spec].name}` : 'Semua modul'}</span></span>
+          <span className="between"><span className="h-section">Modul penyakit</span><span className="small">{spec ? `Spesialisasi: ${MODULES[spec].name}` : `${active.length} modul aktif di RS`}</span></span>
           <div className="menu-grid">
             {order.map((m) => <MenuIcon key={m} to={'/dokter/modul/' + m} icon={MODULES[m].icon} label={MODULES[m].long} tone={MODULES[m].tone} badge={patientsIn(state, m).length} />)}
           </div>
@@ -398,6 +400,20 @@ const FORMS = {
     note: 'Gula darah puasa membaik. Kesemutan kaki kiri tidak bertambah, tidak ada luka.',
     plan: 'Lanjutkan metformin dan glimepiride. Jalan kaki 30 menit 5x seminggu. Periksa mata 15 Okt.',
     next: '2026-12-17'
+  },
+  hipertensi: {
+    title: 'Kontrol hipertensi',
+    fields: [['td', 'Tekanan darah (mmHg)', '134/82'], ['nadi', 'Nadi (x/menit)', '72'], ['bb', 'Berat badan (kg)', '73']],
+    note: 'Tekanan darah di rumah membaik, rata-rata 7 hari 143/89. Tidak ada keluhan pusing.',
+    plan: 'Lanjutkan amlodipin. Batasi garam, jalan kaki 30 menit 5x seminggu. Ukur tekanan darah setiap pagi.',
+    next: '2026-11-26'
+  },
+  ginjal: {
+    title: 'Kontrol ginjal',
+    fields: [['egfr', 'eGFR (mL/menit)', '41'], ['kreatinin', 'Kreatinin (mg/dL)', '1.7'], ['k', 'Kalium (mmol/L)', '5.0'], ['td', 'Tekanan darah (mmHg)', '134/82']],
+    note: 'Fungsi ginjal stabil. Kalium dalam batas aman. Tidak ada bengkak.',
+    plan: 'Lanjutkan candesartan. Cairan sekitar 1,5 liter per hari, garam kurang dari 5 gram. Cek lab ulang 3 bulan lagi.',
+    next: '2026-12-15'
   }
 };
 
@@ -406,7 +422,8 @@ function previous(state, p, module) {
   const enc = state.encounters.filter((e) => e.patientId === p.id && e.module === module);
   const lastNihss = enc.find((e) => e.nihss != null)?.nihss ?? base.stroke?.nihss.at(-1).value;
   const lastWeight = enc.find((e) => e.weight != null)?.weight ?? base.tbc?.weights.at(-1).value;
-  return { prevNihss: lastNihss, prevWeight: lastWeight };
+  const lastEgfr = enc.find((e) => e.egfr != null)?.egfr ?? base.ginjal?.egfr.at(-1).value;
+  return { prevNihss: lastNihss, prevWeight: lastWeight, prevEgfr: lastEgfr };
 }
 
 export function DokterInput({ id }) {
@@ -431,11 +448,11 @@ export function DokterInput({ id }) {
     setNote(f.note); setPlan(f.plan); setNext(f.next);
   };
 
-  if (!hasAccess(state, id)) return <DokterPasien id={id} />;
+  if (!hasAccess(state, id) || !module) return <DokterPasien id={id} />;
 
   const num = (k) => (values[k] ? Number(String(values[k]).replace(',', '.')) : undefined);
   const [sys, dia] = (values.td || '').split('/').map(Number);
-  const vals = { sys: sys || undefined, dia: dia || undefined, nadi: num('nadi'), djj: num('djj'), hb: num('hb'), nihss: num('nihss'), weight: num('bb'), gd: num('gd'), hba1c: num('hba1c'), efek: values.efek, ...previous(state, p, module) };
+  const vals = { sys: sys || undefined, dia: dia || undefined, nadi: num('nadi'), djj: num('djj'), hb: num('hb'), nihss: num('nihss'), weight: num('bb'), gd: num('gd'), hba1c: num('hba1c'), egfr: num('egfr'), k: num('k'), efek: values.efek, ...previous(state, p, module) };
   const flags = checkValues(vals, module);
 
   const submit = (e) => {
@@ -443,7 +460,7 @@ export function DokterInput({ id }) {
     addEncounter({
       patientId: p.id, module, title: form.title, summary: note, plan, nextControl: next,
       fields: form.fields.filter(([k]) => values[k]).map(([k, label]) => ({ label, value: values[k] })),
-      sys: vals.sys, dia: vals.dia, weight: vals.weight, nihss: vals.nihss, mrs: num('mrs'), ldl: num('ldl'), gd: num('gd'), hba1c: num('hba1c'),
+      sys: vals.sys, dia: vals.dia, weight: vals.weight, nihss: vals.nihss, mrs: num('mrs'), ldl: num('ldl'), gd: num('gd'), hba1c: num('hba1c'), egfr: num('egfr'), k: num('k'),
       values: vals, flags,
       diagnoses: visitDx.map((c) => c.code),
       newCondition: newCode ? CONDITION_CATALOG.find((c) => c.code === newCode) : undefined
@@ -519,7 +536,7 @@ export function DokterInput({ id }) {
             <select value={newCode} onChange={(e) => setNewCode(e.target.value)}>
               <option value="">Tidak ada</option>
               {CONDITION_CATALOG.filter((c) => !existingCodes.includes(c.code) && !(c.code.startsWith('O') && p.sex !== 'P')).map((c) => (
-                <option key={c.code} value={c.code}>{c.code} · {c.name}{c.module && !p.modules.includes(c.module) ? ` (aktifkan modul ${MODULES[c.module].name})` : ''}</option>
+                <option key={c.code} value={c.code}>{c.code} · {c.name}</option>
               ))}
             </select>
           </label>

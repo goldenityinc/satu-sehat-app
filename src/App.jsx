@@ -6,7 +6,7 @@ import { KiaHub, Kehamilan, Kunjungan } from './screens/Ibu.jsx';
 import { Anak, KartuImunisasi, DetailVaksin, TumbuhKembang } from './screens/Anak.jsx';
 import { Edukasi, Artikel } from './screens/Edukasi.jsx';
 import { Home, Notifikasi, Kartu, Obat, Riwayat, RiwayatDetail, Faskes, Darurat, Jadwal, Akun } from './screens/Pasien.jsx';
-import { Tbc, Jantung, Stroke, Diabetes, ModulBaru } from './screens/Modul.jsx';
+import { Tbc, Jantung, Stroke, Diabetes, Hipertensi, Ginjal, ModulBaru } from './screens/Modul.jsx';
 import { RekamMedis, DokterPribadi } from './screens/RekamMedis.jsx';
 import { DokterHome, DokterModul, DokterSesi, Scanner, DokterPasien, DokterInput, AlertsPage } from './screens/Dokter.jsx';
 import { PerawatHome, PerawatPasien } from './screens/Kader.jsx';
@@ -37,9 +37,11 @@ function PatientScreen({ a, b }) {
     case 'rekam-medis': return <RekamMedis />;
     case 'dokter-pribadi': return <DokterPribadi />;
     case 'modul': {
-      const own = { slamet: ['jantung', 'stroke'], dimas: ['tbc'], sri: ['diabetes'] }[patient.id] || [];
+      const own = { slamet: ['jantung', 'stroke'], dimas: ['tbc'], sri: ['diabetes'], budi: ['hipertensi', 'ginjal'] }[patient.id] || [];
       if (!own.includes(b)) return <ModulBaru key={b} module={b} />;
-      return b === 'tbc' ? <Tbc /> : b === 'jantung' ? <Jantung /> : b === 'diabetes' ? <Diabetes /> : <Stroke />;
+      const screens = { tbc: Tbc, jantung: Jantung, stroke: Stroke, diabetes: Diabetes, hipertensi: Hipertensi, ginjal: Ginjal };
+      const S = screens[b];
+      return <S />;
     }
     default: return <Home />;
   }
@@ -86,7 +88,7 @@ function Toast() {
 
 // Panel di samping ponsel untuk presenter. Tidak tampil di layar HP (di HP pakai menu Akun).
 function DemoPanel() {
-  const { state, update, syncing, sendK3, reset, newCount, simulateIgd, showQr, scanQr } = useStore();
+  const { state, update, syncing, sendK3, reset, newCount, simulateIgd, showQr, scanQr, toggleRsModule } = useStore();
   const go = (patch, path) => { update(patch); navigate(path); };
   const shown = detectShownQr(state);
   const staff = state.role !== 'pasien';
@@ -107,7 +109,7 @@ function DemoPanel() {
         <div className="stack">
           {patients.map((p) => (
             <button key={p.id} type="button" className={'demo-pick' + (state.patientId === p.id ? ' on' : '')} onClick={() => go({ patientId: p.id }, '/')}>
-              <b>{p.name}</b><span>{p.modules.map((m) => MODULES[m].long).join(' + ')}</span>
+              <b>{p.name}</b><span>{p.modules.filter((m) => state.rsModules.includes(m)).map((m) => MODULES[m].long).join(' + ') || 'Modul belum diaktifkan RS'}</span>
             </button>
           ))}
           {newCount ? <span className="small" style={{ fontWeight: 700, color: '#C2410C' }}>{newCount} notifikasi baru untuk pasien ini</span> : null}
@@ -143,6 +145,15 @@ function DemoPanel() {
       ) : null}
 
       <div className="divider" />
+      <div className="stack">
+        <span className="small" style={{ fontWeight: 700 }}>Modul aktif di RS (pengaturan admin)</span>
+        <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
+          {Object.values(MODULES).map((m) => (
+            <button key={m.id} type="button" className="med-btn" aria-pressed={state.rsModules.includes(m.id)} onClick={() => toggleRsModule(m.id)}>{m.long}</button>
+          ))}
+        </div>
+        <span className="small" style={{ lineHeight: 1.45 }}>RS menentukan modul yang dipakai. Modul yang dimatikan hilang dari aplikasi pasien, dokter, dan perawat.</span>
+      </div>
       <div className="stack">
         <span className="small" style={{ fontWeight: 700 }}>Skenario notifikasi darurat</span>
         <button type="button" className="btn btn-secondary" onClick={() => simulateIgd('slamet')}><Icon name="sos" size={18} />Pak Slamet di IGD mitra: TD 186/104</button>

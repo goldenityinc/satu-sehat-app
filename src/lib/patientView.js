@@ -19,6 +19,10 @@ export function agendaFor(p) {
     { id: 'mata', date: '2026-10-15', title: 'Pemeriksaan mata (retina)', detail: 'Poli Mata RS JIH Solo · skrining diabetes', tone: 'blue', route: '/modul/diabetes' },
     { id: 'pd', date: p.diabetes.nextControl.date, title: 'Kontrol Poli Penyakit Dalam', detail: p.diabetes.nextControl.doctor, tone: 'blue', route: '/modul/diabetes' }
   ];
+  if (p.id === 'budi') return [
+    { id: 'ht', date: p.hipertensi.nextControl.date, title: 'Kontrol hipertensi', detail: p.hipertensi.nextControl.doctor, tone: 'coral', route: '/modul/hipertensi' },
+    { id: 'lab', date: p.ginjal.nextLab.date, title: 'Cek lab fungsi ginjal', detail: p.ginjal.nextLab.unit, tone: 'teal', route: '/modul/ginjal' }
+  ];
   return [];
 }
 
@@ -41,6 +45,9 @@ export function alertsFor(state, p) {
   }
   if (p.id === 'sri') {
     out.push({ tone: 'warn', title: 'HbA1c 7,8%: membaik, belum di target', text: 'Target HbA1c di bawah 7%. Minum obat teratur dan jaga pola makan.', route: '/modul/diabetes' });
+  }
+  if (p.id === 'budi') {
+    out.push({ tone: 'warn', title: 'Tekanan darah di rumah masih di atas target', text: 'Rata-rata 7 hari 143/89, target di bawah 130/80. Minum obat teratur dan kurangi garam.', route: '/modul/hipertensi' });
   }
   return out;
 }
@@ -82,6 +89,12 @@ export function moduleStatus(state, p, m) {
     const a1c = enc.find((e) => e.module === 'diabetes' && e.hba1c != null)?.hba1c ?? p.diabetes.hba1c.at(-1).value;
     const gd = enc.find((e) => e.module === 'diabetes' && e.gd != null)?.gd ?? p.diabetes.glucose.at(-1).value;
     line = `HbA1c ${String(a1c).replace('.', ',')}% · gula darah ${gd} mg/dL`;
+  } else if (m === 'hipertensi' && p.hipertensi) {
+    const bp = enc.find((e) => e.module === 'hipertensi' && e.sys) ?? p.hipertensi.home.at(-1);
+    line = `TD pagi ini ${bp.sys}/${bp.dia} · dari tensimeter rumah`;
+  } else if (m === 'ginjal' && p.ginjal) {
+    const e = enc.find((x) => x.module === 'ginjal' && x.egfr != null)?.egfr ?? p.ginjal.egfr.at(-1).value;
+    line = `eGFR ${e} · ${p.ginjal.stage.split(' · ')[0]}`;
   } else {
     const c = p.conditions.find((x) => x.module === m);
     if (c) line = `${c.name} · sejak ${fmtShort(c.since)}`;

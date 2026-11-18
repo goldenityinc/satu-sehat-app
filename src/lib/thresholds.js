@@ -14,6 +14,9 @@ export const RULES = [
   { id: 'hipoglikemia', label: 'Gula darah terlalu rendah (hipoglikemia)', limit: 'Gula darah < 70 mg/dL', level: 'darurat', test: (v) => v.gd != null && v.gd < 70 },
   { id: 'hiperglikemia', label: 'Gula darah sangat tinggi', limit: 'Gula darah ≥ 300 mg/dL', level: 'darurat', test: (v) => v.gd != null && v.gd >= 300 },
   { id: 'hba1c-tinggi', label: 'Diabetes belum terkendali', limit: 'HbA1c ≥ 9%', level: 'waspada', test: (v, m) => m === 'diabetes' && v.hba1c != null && v.hba1c >= 9 },
+  { id: 'kalium-tinggi', label: 'Kalium darah tinggi (hiperkalemia)', limit: 'Kalium ≥ 6,0 mmol/L', level: 'darurat', test: (v) => v.k != null && v.k >= 6 },
+  { id: 'egfr-rendah', label: 'Fungsi ginjal sangat rendah', limit: 'eGFR < 15 mL/menit', level: 'darurat', test: (v) => v.egfr != null && v.egfr < 15 },
+  { id: 'egfr-turun', label: 'Fungsi ginjal turun cepat', limit: 'eGFR turun > 25%', level: 'waspada', test: (v, m) => m === 'ginjal' && v.egfr != null && v.prevEgfr != null && v.egfr >= 15 && v.egfr < v.prevEgfr * 0.75 },
   { id: 'hepatotoksik', label: 'Curiga efek samping obat ke hati', limit: 'Mata/kulit kuning saat minum OAT', level: 'darurat', test: (v, m) => m === 'tbc' && /kuning/i.test(v.efek || '') }
 ];
 
@@ -33,6 +36,8 @@ export function describeValues(v) {
   if (v.nihss != null) parts.push(`NIHSS ${v.nihss}`);
   if (v.gd) parts.push(`gula darah ${v.gd} mg/dL`);
   if (v.hba1c) parts.push(`HbA1c ${String(v.hba1c).replace('.', ',')}%`);
+  if (v.egfr) parts.push(`eGFR ${v.egfr}`);
+  if (v.k) parts.push(`kalium ${String(v.k).replace('.', ',')} mmol/L`);
   if (v.weight) parts.push(`BB ${String(v.weight).replace('.', ',')} kg`);
   return parts.join(' · ');
 }

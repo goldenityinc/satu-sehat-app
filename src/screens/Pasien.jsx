@@ -31,7 +31,7 @@ export function Home() {
     <div className="screen">
       <div className="home-head">
         <div className="between">
-          <span className="brand"><span className="brand-mark"><Icon name="heartPulse" size={18} stroke={2.2} /></span>JIH Sehat</span>
+          <span className="brand"><span className="brand-mark"><Icon name="heartPulse" size={18} stroke={2.2} /></span>RS JIH Solo</span>
           <span className="row" style={{ gap: 8 }}>
             <Link to="/notifikasi" className="icon-btn" aria-label={`Notifikasi, ${newCount} baru`}>
               <Icon name="bell" stroke={1.8} />
@@ -103,7 +103,7 @@ export function Home() {
               <Icon name="chevron" size={18} style={{ color: '#A9B5B1' }} />
             </Link>
           ) : null}
-          <span className="small" style={{ lineHeight: 1.45 }}>{p.modules.length > 1 ? 'Anda ditangani di beberapa modul sekaligus (komplikasi). Setiap dokter melihat data modul lain saat memindai QR Anda.' : 'Modul baru diaktifkan dokter saat ada diagnosis baru dan akan muncul di sini.'}</span>
+          <span className="small" style={{ lineHeight: 1.45 }}>{p.modules.length > 1 ? 'Anda terdaftar di beberapa modul sekaligus. Setiap dokter melihat data modul lain saat memindai QR Anda.' : 'Modul layanan disediakan RS sesuai kebutuhan pelayanannya dan tampil di sini.'}</span>
         </div>
 
         {missingPd.length ? (

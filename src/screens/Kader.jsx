@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from '../router.jsx';
-import { useStore, medStatus, adherence, accessInfo, mergedPatient } from '../store.jsx';
+import { useStore, medStatus, adherence, accessInfo, mergedPatient, activeModules } from '../store.jsx';
 import { Icon, TopBar, Chip, Avatar, MenuIcon, TONES } from '../components/ui.jsx';
 import { DEMO_TODAY } from '../data/simrs.js';
 import { patients, patientById, MODULES, kader, LAST7 } from '../data/patients.js';
@@ -61,7 +61,7 @@ export function PerawatHome() {
         <div className="stack" style={{ gap: 12 }}>
           <span className="h-section">Modul penyakit</span>
           <div className="menu-grid">
-            {Object.keys(MODULES).map((m) => <MenuIcon key={m} to={'/perawat/modul/' + m} icon={MODULES[m].icon} label={MODULES[m].long} tone={MODULES[m].tone} badge={patients.filter((p) => mergedPatient(state, p.id).modules.includes(m)).length} />)}
+            {activeModules(state).map((m) => <MenuIcon key={m} to={'/perawat/modul/' + m} icon={MODULES[m].icon} label={MODULES[m].long} tone={MODULES[m].tone} badge={patients.filter((p) => mergedPatient(state, p.id).modules.includes(m)).length} />)}
           </div>
         </div>
 

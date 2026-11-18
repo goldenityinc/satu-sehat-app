@@ -8,7 +8,7 @@ export const actorById = (id) => (id === 'perawat' ? { ...kader, id: 'perawat' }
 const actorOf = (s) => actorById(s.role === 'kader' ? 'perawat' : s.doctorId);
 
 // Satu browser = satu "server" demo: semua peran (pasien, dokter, kader) berbagi state ini.
-const KEY = 'jih-sehat-demo-v4';
+const KEY = 'jih-demo-v5';
 export const QR_TTL_MS = 10 * 60_000; // QR berganti setiap 10 menit
 
 const defaults = () => ({
@@ -31,8 +31,12 @@ const defaults = () => ({
   personalDoctors: {},   // { [pasien]: { [modul]: doctorId } }
   doctorAlerts: [],      // peringatan ke dokter pribadi
   addedConditions: [],   // diagnosis yang ditambahkan dokter di demo
+  rsModules: Object.keys(MODULES), // modul yang diaktifkan RS (pengaturan admin RS)
   seenNotif: {}
 });
+
+// Modul yang diaktifkan RS, dalam urutan katalog.
+export const activeModules = (state) => Object.keys(MODULES).filter((m) => state.rsModules.includes(m));
 
 function load() {
   try {
@@ -49,16 +53,14 @@ const uid = (p) => `${p}-${Date.now().toString(36)}-${(seq++).toString(36)}`;
 export const nowTime = () => '10.' + String(new Date().getMinutes()).padStart(2, '0');
 const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
 
-// Pasien + diagnosis/modul tambahan dari dokter.
+// Pasien + diagnosis tambahan dari dokter. Modul yang tampil hanya modul pasien yang diaktifkan RS;
+// diagnosis baru dicatat di rekam medis tanpa mengaktifkan modul.
 export function mergedPatient(state, id) {
   const base = patientById(id);
   if (!base) return null;
   const added = state.addedConditions.filter((c) => c.patientId === id);
-  const modules = [...base.modules];
-  for (const c of added) if (c.module && !modules.includes(c.module)) modules.push(c.module);
-  const careTeam = { ...base.careTeam };
-  for (const c of added) if (c.module && !careTeam[c.module]) careTeam[c.module] = [c.doctorId];
-  return { ...base, modules, careTeam, conditions: [...base.conditions, ...added] };
+  const modules = base.modules.filter((m) => state.rsModules.includes(m));
+  return { ...base, modules, conditions: [...base.conditions, ...added] };
 }
 
 // Akses rekam medis hanya lewat sesi scan QR yang masih aktif (dokter pribadi pun tetap scan).
@@ -218,11 +220,9 @@ export function StoreProvider({ children }) {
       let notifs = pushNotif(s, enc.patientId, { kind: 'encounter', module: enc.module, title: `Hasil pemeriksaan baru: ${enc.title}`, detail: `${doc.name} · ${facilityName(s.facilityId)}`, route: '/riwayat/' + e.id });
       let addedConditions = s.addedConditions;
       if (enc.newCondition) {
-        const before = mergedPatient(s, enc.patientId);
         const c = { ...enc.newCondition, patientId: enc.patientId, since: DEMO_TODAY, by: doc.name, doctorId: doc.id, facility: s.facilityId, isNew: true };
         addedConditions = [...addedConditions, c];
-        const activated = c.module && !before.modules.includes(c.module);
-        notifs = [{ id: uid('n'), patientId: enc.patientId, date: DEMO_TODAY, time: e.time, kind: 'condition', title: `Diagnosis baru: ${c.name} (${c.code})`, detail: activated ? `Modul ${MODULES[c.module].long} diaktifkan di beranda Anda.` : 'Tercatat di rekam medis Anda.', route: '/rekam-medis' }, ...notifs];
+        notifs = [{ id: uid('n'), patientId: enc.patientId, date: DEMO_TODAY, time: e.time, kind: 'condition', title: `Diagnosis baru: ${c.name} (${c.code})`, detail: 'Tercatat di rekam medis Anda.', route: '/rekam-medis' }, ...notifs];
       }
       const out = valueAlerts({ ...s, notifications: notifs }, enc.patientId, enc.module, enc.values || {}, enc.flags || [], `${doc.name}, ${facilityName(s.facilityId)}`, doc.id, e.time);
       return { encounters: [e, ...s.encounters], ...out, addedConditions, ...(enc.module === 'kia' ? { synced: true, inboxSeen: false } : {}) };
@@ -233,6 +233,15 @@ export function StoreProvider({ children }) {
     update((s) => {
       const v = { id: uid('k'), date: DEMO_TODAY, time: nowTime(), ...visit };
       return { kaderVisits: [v, ...s.kaderVisits], notifications: pushNotif(s, visit.patientId, { kind: 'kader', title: 'Kunjungan rumah oleh perawat', detail: `${kader.short} mencatat kunjungan hari ini.`, route: '/riwayat' }) };
+    });
+  }, [update]);
+
+  // Admin RS menyalakan/mematikan modul. Minimal satu modul tetap aktif.
+  const toggleRsModule = useCallback((m) => {
+    update((s) => {
+      const on = s.rsModules.includes(m);
+      if (on && s.rsModules.length === 1) return {};
+      return { rsModules: on ? s.rsModules.filter((x) => x !== m) : [...s.rsModules, m] };
     });
   }, [update]);
 
@@ -249,10 +258,10 @@ export function StoreProvider({ children }) {
     const doctor = doctors.find((d) => d.id === state.doctorId);
     return {
       state, update, syncing, toast, setToast, showToast, sendK3, reset, toggleMed, addEncounter, addKaderVisit,
-      issueQr, showQr, scanQr, revokeAccess, setPersonalDoctor, raiseAlert, handleAlert, simulateIgd,
+      issueQr, showQr, scanQr, revokeAccess, setPersonalDoctor, raiseAlert, handleAlert, simulateIgd, toggleRsModule,
       patient, doctor, visits, inbox: kiaInbox, kiaNew, myNotifs, newCount
     };
-  }, [state, update, syncing, toast, showToast, sendK3, reset, toggleMed, addEncounter, addKaderVisit, issueQr, showQr, scanQr, revokeAccess, setPersonalDoctor, raiseAlert, handleAlert, simulateIgd]);
+  }, [state, update, syncing, toast, showToast, sendK3, reset, toggleMed, addEncounter, addKaderVisit, issueQr, showQr, scanQr, revokeAccess, setPersonalDoctor, raiseAlert, handleAlert, simulateIgd, toggleRsModule]);
 
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }

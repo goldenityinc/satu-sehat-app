@@ -17,34 +17,40 @@ export const doctors = [
   { id: 'rani', name: 'dr. Maharani Putri, Sp.KFR', short: 'dr. Rani', specialty: 'Rehabilitasi medik', unit: 'Instalasi Rehab Medik', initials: 'MP' },
   { id: 'ayu', name: 'dr. Ayu Lestari', short: 'dr. Ayu', specialty: 'Dokter umum', unit: 'Poli Umum', initials: 'AL', facility: 'mitra' },
   { id: 'dewi', name: 'dr. Dewi Kartikasari, Sp.PD-KEMD', short: 'dr. Dewi', specialty: 'Penyakit dalam (endokrin)', unit: 'Poli Penyakit Dalam', initials: 'DK' },
-  { id: 'ratna', name: 'Bd. Ratna Wulandari', short: 'Bd. Ratna', specialty: 'Bidan', unit: 'Poli Kebidanan', initials: 'RW' }
+  { id: 'ratna', name: 'Bd. Ratna Wulandari', short: 'Bd. Ratna', specialty: 'Bidan', unit: 'Poli Kebidanan', initials: 'RW' },
+  { id: 'bayu', name: 'dr. Bayu Aditya, Sp.PD-KGH', short: 'dr. Bayu', specialty: 'Penyakit dalam (ginjal & hipertensi)', unit: 'Poli Penyakit Dalam', initials: 'BA' }
 ];
 export const doctorById = (id) => doctors.find((d) => d.id === id);
 
 // Modul dengan risiko kegawatan tinggi: pasien wajib memilih dokter pribadi.
 export const CRITICAL_MODULES = ['jantung', 'stroke'];
 
-// Katalog diagnosis (ICD-10) yang bisa ditambahkan dokter. Diagnosis yang terhubung ke modul akan mengaktifkan modulnya.
+// Katalog diagnosis (ICD-10) yang bisa ditambahkan dokter. Diagnosis hanya dicatat di rekam medis;
+// modul yang tampil ditentukan oleh pengaturan modul RS, bukan oleh diagnosis.
 export const CONDITION_CATALOG = [
-  { code: 'I10', name: 'Hipertensi esensial', module: 'jantung' },
+  { code: 'I10', name: 'Hipertensi esensial', module: 'hipertensi' },
   { code: 'I25.1', name: 'Penyakit jantung koroner (aterosklerotik)', module: 'jantung' },
   { code: 'I50.9', name: 'Gagal jantung', module: 'jantung' },
   { code: 'I63.9', name: 'Stroke iskemik (infark serebral)', module: 'stroke' },
   { code: 'A15.0', name: 'TBC paru terkonfirmasi bakteriologis', module: 'tbc' },
   { code: 'O99.0', name: 'Anemia dalam kehamilan', module: 'kia' },
-  { code: 'E11.9', name: 'Diabetes melitus tipe 2', module: 'diabetes' }
+  { code: 'E11.9', name: 'Diabetes melitus tipe 2', module: 'diabetes' },
+  { code: 'N18.3', name: 'Penyakit ginjal kronis stadium 3', module: 'ginjal' }
 ];
 
 // Perawat pendamping (home care & pengawas minum obat). Variabel tetap bernama `kader` agar kode lama tidak berubah.
 export const kader = { id: 'perawat', name: 'Ns. Sri Sumarni, S.Kep.', short: 'Ns. Sumarni', role: 'Perawat home care · PMO', area: 'Wilayah Banjarsari', initials: 'SS', specialty: 'Perawat', unit: 'Home care', puskesmas: 'RS JIH Solo' };
 
-// Modul layanan. Hanya modul yang diikuti pasien yang tampil di beranda.
+// Modul layanan. RS memilih modul yang diaktifkan (pengaturan modul RS);
+// di beranda pasien tampil modul aktif yang diikuti pasien.
 export const MODULES = {
   kia: { id: 'kia', name: 'KIA', long: 'Kesehatan Ibu & Anak', icon: 'baby', tone: 'coral', route: '/kia' },
   tbc: { id: 'tbc', name: 'TBC', long: 'Pengobatan TBC', icon: 'lungs', tone: 'amber', route: '/modul/tbc' },
   jantung: { id: 'jantung', name: 'Jantung', long: 'Penyakit jantung', icon: 'heartPulse', tone: 'red', route: '/modul/jantung' },
   stroke: { id: 'stroke', name: 'Stroke', long: 'Pemulihan stroke', icon: 'brain', tone: 'purple', route: '/modul/stroke' },
-  diabetes: { id: 'diabetes', name: 'Diabetes', long: 'Diabetes', icon: 'drop', tone: 'blue', route: '/modul/diabetes' }
+  diabetes: { id: 'diabetes', name: 'Diabetes', long: 'Diabetes', icon: 'drop', tone: 'blue', route: '/modul/diabetes' },
+  hipertensi: { id: 'hipertensi', name: 'Hipertensi', long: 'Hipertensi', icon: 'gauge', tone: 'coral', route: '/modul/hipertensi' },
+  ginjal: { id: 'ginjal', name: 'Ginjal', long: 'Ginjal kronis', icon: 'kidney', tone: 'teal', route: '/modul/ginjal' }
 };
 
 export const patients = [
@@ -182,6 +188,60 @@ export const patients = [
       ],
       nextControl: { date: '2026-10-22', unit: 'Poli Penyakit Dalam', doctor: 'dr. Dewi Kartikasari, Sp.PD-KEMD' }
     }
+  },
+  {
+    id: 'budi', name: 'Budi Santoso', short: 'Pak Budi', greet: 'Pak Budi', initials: 'BS', sex: 'L', dob: '1966-11-02',
+    nik: '3372••••••••0045', healthId: 'JIH-0055-3307', satusehatId: 'P02478193349', bloodType: 'O+', allergies: ['Tidak ada'],
+    modules: ['hipertensi', 'ginjal'], homeFacility: 'jih',
+    conditions: [
+      { code: 'I10', name: 'Hipertensi', module: 'hipertensi', since: '2018-04-12', by: 'dr. Ayu Lestari', facility: 'mitra' },
+      { code: 'N18.3', name: 'Penyakit ginjal kronis stadium 3b (akibat hipertensi)', module: 'ginjal', since: '2025-10-20', by: 'dr. Bayu Aditya, Sp.PD-KGH', facility: 'jih' }
+    ],
+    careTeam: { hipertensi: ['bayu', 'ayu'], ginjal: ['bayu'] },
+    meds: [
+      { id: 'amlodipin', name: 'Amlodipin 10 mg', dose: '1 tablet', time: 'pagi', note: 'Penurun tekanan darah', module: 'hipertensi' },
+      { id: 'candesartan', name: 'Candesartan 16 mg', dose: '1 tablet', time: 'malam', note: 'Menurunkan tekanan darah dan melindungi ginjal', module: 'ginjal' }
+    ],
+    encounters: [
+      { id: 'b-3', date: '2026-09-17', facility: 'jih', unit: 'Poli Penyakit Dalam', doctor: 'dr. Bayu Aditya, Sp.PD-KGH', module: 'ginjal', title: 'Kontrol ginjal', summary: 'eGFR 42, kalium 5,1. TD 140/86. Diet rendah garam dan batas cairan dilanjutkan.' },
+      { id: 'b-2', date: '2026-07-15', facility: 'mitra', unit: 'Poli Umum', doctor: 'dr. Ayu Lestari', module: 'hipertensi', title: 'Kontrol tekanan darah (klinik mitra)', summary: 'TD 146/90. Amlodipin dinaikkan menjadi 10 mg.' },
+      { id: 'b-1', date: '2026-04-08', facility: 'jih', unit: 'Laboratorium', doctor: 'Laboratorium RS JIH Solo', module: 'ginjal', title: 'Pemeriksaan fungsi ginjal', summary: 'Kreatinin 1,6 mg/dL, eGFR 46. Albumin urin meningkat.' }
+    ],
+    hipertensi: {
+      // Tekanan darah dari tensimeter digital di rumah (terkirim otomatis ke aplikasi).
+      home: [
+        { date: '2026-10-02', sys: 148, dia: 92 }, { date: '2026-10-03', sys: 144, dia: 90 }, { date: '2026-10-04', sys: 152, dia: 94 }, { date: '2026-10-05', sys: 140, dia: 88 },
+        { date: '2026-10-06', sys: 138, dia: 86 }, { date: '2026-10-07', sys: 142, dia: 88 }, { date: '2026-10-08', sys: 136, dia: 84 }
+      ],
+      clinic: [{ date: '2026-04-08', sys: 158, dia: 96 }, { date: '2026-07-15', sys: 146, dia: 90 }, { date: '2026-09-17', sys: 140, dia: 86 }],
+      device: 'Tensimeter digital di rumah, terhubung ke aplikasi',
+      lifestyle: [
+        { label: 'Garam', value: 'Dibatasi < 1 sendok teh/hari', ok: true },
+        { label: 'Berat badan', value: '74 kg · IMT 26,2', ok: false },
+        { label: 'Aktivitas fisik', value: 'Jalan kaki 3x seminggu', ok: false },
+        { label: 'Merokok', value: 'Tidak merokok', ok: true }
+      ],
+      nextControl: { date: '2026-10-29', unit: 'Poli Penyakit Dalam', doctor: 'dr. Bayu Aditya, Sp.PD-KGH' }
+    },
+    ginjal: {
+      stage: 'Stadium G3b · A2',
+      egfr: [{ date: '2025-10-20', value: 52 }, { date: '2026-01-14', value: 48 }, { date: '2026-04-08', value: 46 }, { date: '2026-07-15', value: 44 }, { date: '2026-09-17', value: 42 }],
+      potassium: [{ date: '2026-04-08', value: 4.6 }, { date: '2026-07-15', value: 4.9 }, { date: '2026-09-17', value: 5.1 }],
+      labs: [
+        { label: 'Kreatinin', value: '1,7 mg/dL', date: '2026-09-17', ok: false },
+        { label: 'Albumin urin (UACR)', value: '120 mg/g · target < 30', date: '2026-09-17', ok: false },
+        { label: 'Hemoglobin', value: '11,8 g/dL', date: '2026-09-17', ok: true },
+        { label: 'Asam urat', value: '6,9 mg/dL', date: '2026-09-17', ok: true }
+      ],
+      diet: [
+        { label: 'Cairan', value: 'Sekitar 1,5 liter per hari' },
+        { label: 'Garam', value: 'Kurang dari 5 gram per hari' },
+        { label: 'Protein', value: 'Secukupnya, ± 0,8 g/kg berat badan' },
+        { label: 'Kalium', value: 'Batasi pisang, alpukat, dan jeruk' }
+      ],
+      nextLab: { date: '2026-12-10', unit: 'Laboratorium RS JIH Solo' },
+      nextControl: { date: '2026-12-15', unit: 'Poli Penyakit Dalam', doctor: 'dr. Bayu Aditya, Sp.PD-KGH' }
+    }
   }
 ];
 
@@ -199,6 +259,7 @@ export function seedMedLogs() {
         if (p.id === 'slamet' && m.id === 'atorva' && d === '2026-10-05') taken = false;
         if (p.id === 'rina' && m.id === 'ttd' && d >= '2026-10-05') taken = false;
         if (p.id === 'sri' && m.id === 'metformin' && d === '2026-10-04') taken = false;
+        if (p.id === 'budi' && m.id === 'candesartan' && d === '2026-10-06') taken = false;
         logs[`${p.id}:${m.id}:${d}`] = taken ? { by: p.id === 'dimas' && d !== '2026-10-04' ? 'kader' : 'pasien' } : null;
       }
     }
